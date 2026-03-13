@@ -1,43 +1,72 @@
 require('dotenv').config();
+
 const express = require('express');
-const Firebird = require('node-firebird');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+
+const genericRoutes = require('./routes/genericRoutes');
 
 const app = express();
 app.use(express.json());
 
-console.log("API iniciando...");
+// registrar rotas da API
+app.use('/api', genericRoutes);
 
+// swagger config
 const options = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_DATABASE,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  lowercase_keys: false,
-  role: null,
-  pageSize: 4096
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "API Firebird ERP",
+      version: "1.0.0",
+      description: "API para consulta de documentos"
+    }
+  },
+  apis: []
 };
 
-// Rota de teste
-app.get('/', (req, res) => {
-  res.send('API conectada ao Firebird 🚀');
-});
+const specs = swaggerJsdoc(options);
 
-// Rota consultando dados
-app.get('/clientes', (req, res) => {
-  Firebird.attach(options, function (err, db) {
-    if (err) return res.status(500).json(err);
-
-    db.query('SELECT FIRST 10 * FROM DOCUMENTO_FATURA', function (err, result) {
-      db.detach();
-
-      if (err) return res.status(500).json(err);
-
-      res.json(result);
-    });
-  });
-});
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
+  console.log("API rodando em http://localhost:3000");
+  console.log("Swagger em http://localhost:3000/docs");
 });
+
+/*require('dotenv').config();
+
+const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+
+//const docfatRoutes = require('./routes/docfatRoutes');
+
+const tabelasPermitidas = require('./config/tabelas');
+
+const app = express();
+app.use(express.json());
+
+//app.use('/', docfatRoutes);
+
+// swagger config
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "API Firebird ERP",
+      version: "1.0.0",
+      description: "API para consulta de documentos"
+    }
+  },
+  apis: []
+};
+
+const specs = swaggerJsdoc(options);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+app.listen(3000, () => {
+  console.log("API rodando em http://localhost:3000");
+  console.log("Swagger em http://localhost:3000/docs");
+});*/
