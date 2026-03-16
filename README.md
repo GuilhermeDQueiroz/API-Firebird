@@ -84,7 +84,7 @@ Exemplo:
 SQL executado:
 
 ```
-SELECT * FROM DOCFAT WHERE CODIGO_DOCFAT = ?
+SELECT * FROM DOCFAT WHERE ID_DOCFAT = ?
 ```
 
 ---
@@ -114,7 +114,7 @@ Exemplos:
 ```
 
 ```
-/api/ITEM?CODIGO_ITEM=0&GRUPORESULTADO_ITEM=0
+/api/ITEM?CODIGO_ITEM=0&GRESULTADO_ITEM=0
 ```
 
 SQL gerado:
@@ -122,13 +122,13 @@ SQL gerado:
 ```
 SELECT * FROM ITEM
 WHERE CODIGO_ITEM = ?
-AND GRUPORESULTADO_ITEM = ?
+AND GRESULTADO_ITEM = ?
 ```
 
 Também é possível combinar filtros com limite:
 
 ```
-/api/ITEM?GRUPORESULTADO_ITEM=0&limit=10
+/api/ITEM?GRESULTADO_ITEM=0&limit=10
 ```
 
 ---
