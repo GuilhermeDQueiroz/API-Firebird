@@ -1,54 +1,22 @@
-API para consulta ao banco Firebird
+# API Firebird ERP
 
-1️⃣ Criação da API em Node.js
+API REST desenvolvida em **Node.js + Express** para consulta de dados em banco **Firebird**, com rotas genéricas, filtros dinâmicos e estrutura organizada para integração com dashboards e aplicações web.
 
-Criação de uma API REST usando:
+---
 
-Node.js
+# 🚀 Tecnologias utilizadas
 
-Express.js
+* Node.js
+* Express
+* Firebird
+* node-firebird
+* Swagger (documentação da API)
 
-A API roda localmente:
+---
 
-http://localhost:3000
+# 📂 Estrutura do projeto
 
-
-Responsável por consultar dados do banco Firebird e disponibilizar via HTTP.
-
-2️⃣ Conexão com banco Firebird
-
-Foi criada a conexão usando a biblioteca:
-
-node-firebird
-
-Ela permite que o Node execute SQL diretamente no Firebird.
-
-Exemplo de consulta executada pela API:
-
-SELECT FIRST 20 * FROM DOCFAT
-
-3️⃣ Pool de conexões
-
-Implementamos pool de conexão, que:
-
-evita abrir conexão nova a cada requisição
-
-melhora performance
-
-reduz carga no banco
-
-Fluxo:
-
-API request
-     ↓
-Pool de conexões
-     ↓
-Firebird
-
-4️⃣ Estrutura organizada do projeto
-
-A API foi reorganizada seguindo uma arquitetura mais profissional:
-
+```
 project
 │
 ├── index.js
@@ -64,124 +32,175 @@ project
 │
 └── routes
     └── genericRoutes.js
+```
 
+Separação por responsabilidades:
 
-Separando responsabilidades:
+| Camada      | Função                    |
+| ----------- | ------------------------- |
+| Routes      | definição dos endpoints   |
+| Controllers | lógica das requisições    |
+| DB          | conexão com o banco       |
+| Config      | configurações e segurança |
 
-Camada	Função
-Routes	define endpoints
-Controllers	lógica da API
-DB	conexão com banco
-Config	configurações
-5️⃣ Rotas genéricas para qualquer tabela
+---
 
-Criado rotas dinâmicas:
+# 🔌 Conexão com Firebird
 
-Listar registros
+A conexão com o banco é realizada utilizando a biblioteca **node-firebird**, com **pool de conexões** para melhorar desempenho e evitar abertura excessiva de conexões.
+
+---
+
+# 🌐 Endpoints da API
+
+## Listar registros de uma tabela
+
+```
 GET /api/:tabela
-
+```
 
 Exemplo:
 
+```
 /api/DOCFAT
 /api/CLIENTE
+/api/ITEM
+```
 
-Buscar por ID
+---
+
+## Buscar registro por ID
+
+```
 GET /api/:tabela/:id
-
+```
 
 Exemplo:
 
+```
 /api/DOCFAT/55
-
+```
 
 SQL executado:
 
+```
 SELECT * FROM DOCFAT WHERE CODIGO_DOCFAT = ?
+```
 
-6️⃣ Limitação de resultados
+---
 
-Adicionado limite de registros via query param:
+## Limitar quantidade de registros
 
+```
 /api/DOCFAT?limit=10
+```
 
+SQL:
+
+```
+SELECT FIRST 10 * FROM DOCFAT
+```
+
+---
+
+# 🔎 Filtros dinâmicos
+
+A API permite filtrar registros utilizando **query parameters**, sem necessidade de criar novas rotas.
+
+Exemplos:
+
+```
+/api/ITEM?CODIGO_ITEM=0
+```
+
+```
+/api/ITEM?CODIGO_ITEM=0&GRUPORESULTADO_ITEM=0
+```
 
 SQL gerado:
 
-SELECT FIRST 10 * FROM DOCFAT
+```
+SELECT * FROM ITEM
+WHERE CODIGO_ITEM = ?
+AND GRUPORESULTADO_ITEM = ?
+```
 
+Também é possível combinar filtros com limite:
 
-Isso evita consultas muito pesadas.
+```
+/api/ITEM?GRUPORESULTADO_ITEM=0&limit=10
+```
 
-7️⃣ Segurança: controle de tabelas permitidas
+---
 
-Criado um arquivo:
+# 🔐 Segurança
 
+Para evitar acesso indevido a tabelas do banco, foi implementada uma lista de **tabelas permitidas**.
+
+Arquivo:
+
+```
 config/tabelas.js
-
+```
 
 Exemplo:
 
+```javascript
 module.exports = [
   "DOCFAT",
   "CLIENTE",
-  "PRODUTO"
+  "PRODUTO",
+  "ITEM"
 ];
+```
 
+Caso uma tabela não permitida seja solicitada, a API retorna:
 
-A API valida:
+```
+403 - Tabela não permitida
+```
 
-if (!tabelasPermitidas.includes(tabela)) {
-  return res.status(403).json({ erro: "Tabela não permitida" });
-}
+---
 
+# 🛡 Proteção contra SQL Injection
 
-Isso evita:
+Consultas que utilizam parâmetros (como busca por ID e filtros) usam **prepared statements**:
 
-acesso a tabelas internas
+```
+db.query(sql, [valor])
+```
 
-SQL injection via nome de tabela
+Isso evita injeção de SQL.
 
+---
 
-8️⃣ Uso de parâmetros seguros no SQL
+# 📑 Documentação da API
 
-Para evitar SQL injection:
-
-db.query(sql, [id])
-
-
-Em vez de concatenar valores diretamente no SQL.
-
-
-9️⃣ Documentação automática
-
-Implementado documentação com:
-
-Swagger UI
-
-swagger-jsdoc
+A API possui documentação automática com **Swagger**.
 
 Disponível em:
 
+```
 http://localhost:3000/docs
+```
 
+---
 
-🔟 Preparação para consumo no front-end
+# 📊 Integração com Front-end
 
-A API foi preparada para ser consumida por um dashboard em:
+A API foi preparada para consumo por dashboards e aplicações web.
 
-Vue.js
+Stack prevista para o front-end:
 
-Vue Router
-
-Pinia
-
-Vuetify
-
-ApexCharts
+* Vue.js
+* Vue Router
+* Pinia
+* Vuetify
+* ApexCharts
 
 Fluxo de dados:
 
+```
 Firebird
    ↓
 Node API
@@ -190,40 +209,36 @@ Pinia Store
    ↓
 Vue Components
    ↓
-ApexCharts / Vuetify
+Charts / Dashboards
+```
 
-🚀 Recursos a API já possui
+---
 
-✅ Conexão com Firebird
-✅ Pool de conexões
-✅ Rotas dinâmicas por tabela
-✅ Busca por ID
-✅ Limite de resultados
-✅ Segurança de tabelas
-✅ Estrutura profissional (routes + controllers)
-✅ Documentação Swagger
-✅ Pronta para dashboards Vue
+# 📈 Melhorias implementadas
 
-📈 Melhorias futuras possíveis
+* Estrutura modular (routes + controllers)
+* Rotas genéricas para qualquer tabela
+* Busca por ID
+* Limitação de registros
+* Filtros dinâmicos
+* Pool de conexões
+* Validação de tabelas permitidas
+* Proteção contra SQL injection
+* Documentação Swagger
 
-Algumas melhorias a serem implementadas:
+---
 
-filtros dinâmicos
-/api/DOCFAT?CLIENTE_DOCFAT=3
+# 📌 Possíveis melhorias futuras
 
-ordenação
-/api/DOCFAT?sort=DTEMISSAO_DOCFAT
+* paginação (`page`)
+* ordenação (`sort`)
+* filtros avançados
+* endpoints específicos para dashboards
+* autenticação (JWT)
+* cache para consultas pesadas
 
-paginação
-/api/DOCFAT?page=2&limit=20
+---
 
-endpoints específicos para dashboard
-/api/dashboard/faturamento-mensal
-/api/dashboard/top-clientes
-/api/dashboard/top-produtos
+# 👨‍💻 Autor
 
-
-Isso melhora muito a performance do painel.
-
-✅ Conclusão:
-Uma API genérica para Firebird pronta para integração com dashboards e sistemas web, com arquitetura organizada e segurança básica aplicada.
+Projeto desenvolvido para estudo e integração com dashboards de ERP.
