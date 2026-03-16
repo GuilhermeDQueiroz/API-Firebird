@@ -1,59 +1,53 @@
-# API Firebird ERP
+# Contexto do Projeto — API Firebird + Dashboard Vue
 
-API REST desenvolvida em **Node.js + Express** para consulta de dados em banco **Firebird**, com rotas genéricas, filtros dinâmicos e estrutura organizada para integração com dashboards e aplicações web.
+## Objetivo do projeto
+
+Desenvolver uma **API REST em Node.js** para consultar dados de um **banco Firebird** utilizado em um ERP e consumir esses dados em um **dashboard web em Vue.js** com gráficos e filtros analíticos.
 
 ---
 
-# 🚀 Tecnologias utilizadas
+# Backend (API)
+
+## Tecnologias
 
 * Node.js
 * Express
-* Firebird
+* Firebird 5
 * node-firebird
-* Swagger (documentação da API)
+* dotenv
+* Swagger (documentação)
 
----
-
-# 📂 Estrutura do projeto
+## Estrutura da API
 
 ```
-project
+api
 │
 ├── index.js
 │
-├── config
-│   └── tabelas.js
-│
-├── db
-│   └── firebird.js
+├── routes
+│   └── genericRoutes.js
 │
 ├── controllers
 │   └── genericController.js
 │
-└── routes
-    └── genericRoutes.js
+├── db
+│   └── firebird.js
+│
+└── config
+    └── tabelas.js
 ```
 
-Separação por responsabilidades:
+## Funcionalidades implementadas
 
-| Camada      | Função                    |
-| ----------- | ------------------------- |
-| Routes      | definição dos endpoints   |
-| Controllers | lógica das requisições    |
-| DB          | conexão com o banco       |
-| Config      | configurações e segurança |
+### Conexão com Firebird
+
+Conexão direta utilizando **node-firebird** com pool de conexões.
 
 ---
 
-# 🔌 Conexão com Firebird
+### Rotas genéricas
 
-A conexão com o banco é realizada utilizando a biblioteca **node-firebird**, com **pool de conexões** para melhorar desempenho e evitar abertura excessiva de conexões.
-
----
-
-# 🌐 Endpoints da API
-
-## Listar registros de uma tabela
+Listar registros de qualquer tabela permitida:
 
 ```
 GET /api/:tabela
@@ -63,13 +57,13 @@ Exemplo:
 
 ```
 /api/DOCFAT
-/api/CLIENTE
 /api/ITEM
+/api/CLIENTE
 ```
 
 ---
 
-## Buscar registro por ID
+### Buscar registro por ID
 
 ```
 GET /api/:tabela/:id
@@ -81,61 +75,55 @@ Exemplo:
 /api/DOCFAT/55
 ```
 
-SQL executado:
+A API assume o padrão:
 
 ```
-SELECT * FROM DOCFAT WHERE ID_DOCFAT = ?
+CODIGO_<TABELA>
+```
+
+Exemplo SQL:
+
+```
+SELECT * FROM DOCFAT WHERE CODIGO_DOCFAT = ?
 ```
 
 ---
 
-## Limitar quantidade de registros
+### Limitar quantidade de registros
 
 ```
-/api/DOCFAT?limit=10
+/api/DOCFAT?limit=20
 ```
 
 SQL:
 
 ```
-SELECT FIRST 10 * FROM DOCFAT
+SELECT FIRST 20 * FROM DOCFAT
 ```
 
 ---
 
-# 🔎 Filtros dinâmicos
+### Filtros dinâmicos
 
-A API permite filtrar registros utilizando **query parameters**, sem necessidade de criar novas rotas.
+A API permite filtros através de query params.
 
-Exemplos:
-
-```
-/api/ITEM?CODIGO_ITEM=0
-```
+Exemplo:
 
 ```
-/api/ITEM?CODIGO_ITEM=0&GRESULTADO_ITEM=0
+/api/ITEM?CODIGO_ITEM=10
 ```
 
-SQL gerado:
+ou múltiplos filtros:
 
 ```
-SELECT * FROM ITEM
-WHERE CODIGO_ITEM = ?
-AND GRESULTADO_ITEM = ?
-```
-
-Também é possível combinar filtros com limite:
-
-```
-/api/ITEM?GRESULTADO_ITEM=0&limit=10
+/api/ITEM?CODIGO_ITEM=0&GRUPORESULTADO_ITEM=0
 ```
 
 ---
 
-# 🔐 Segurança
+### Segurança
 
-Para evitar acesso indevido a tabelas do banco, foi implementada uma lista de **tabelas permitidas**.
+Foi implementada uma lista de **tabelas permitidas**.
 
 Arquivo:
 
@@ -145,16 +133,15 @@ config/tabelas.js
 
 Exemplo:
 
-```javascript
+```
 module.exports = [
   "DOCFAT",
   "CLIENTE",
-  "PRODUTO",
   "ITEM"
 ];
 ```
 
-Caso uma tabela não permitida seja solicitada, a API retorna:
+Se uma tabela não estiver na lista:
 
 ```
 403 - Tabela não permitida
@@ -162,23 +149,19 @@ Caso uma tabela não permitida seja solicitada, a API retorna:
 
 ---
 
-# 🛡 Proteção contra SQL Injection
+### Proteção contra SQL Injection
 
-Consultas que utilizam parâmetros (como busca por ID e filtros) usam **prepared statements**:
+Consultas utilizam parâmetros preparados:
 
 ```
 db.query(sql, [valor])
 ```
 
-Isso evita injeção de SQL.
-
 ---
 
-# 📑 Documentação da API
+### Documentação
 
-A API possui documentação automática com **Swagger**.
-
-Disponível em:
+Swagger disponível em:
 
 ```
 http://localhost:3000/docs
@@ -186,59 +169,196 @@ http://localhost:3000/docs
 
 ---
 
-# 📊 Integração com Front-end
+# Dados utilizados
 
-A API foi preparada para consumo por dashboards e aplicações web.
+A principal tabela utilizada para o dashboard é:
 
-Stack prevista para o front-end:
+```
+DOCFAT
+```
+
+Campos relevantes:
+
+```
+CODIGO_DOCFAT
+CLIENTE_DOCFAT
+DTEMISSAO_DOCFAT
+VLRBRUTO_DOCFAT
+VLRLIQUIDO_DOCFAT
+QTDETOTALITENS_DOCFAT
+STATUS_DOCFAT
+```
+
+Essa tabela representa **documentos de faturamento / vendas**.
+
+---
+
+# Frontend (Dashboard)
+
+## Tecnologias
 
 * Vue.js
 * Vue Router
 * Pinia
 * Vuetify
 * ApexCharts
+* Axios
 
-Fluxo de dados:
+Projeto criado com **Vite**.
+
+---
+
+## Estrutura do front-end
 
 ```
-Firebird
-   ↓
-Node API
-   ↓
-Pinia Store
-   ↓
-Vue Components
-   ↓
-Charts / Dashboards
+front-end
+└── dashboard
+    │
+    ├── src
+    │
+    ├── api
+    │   └── api.js
+    │
+    ├── stores
+    │   └── vendasStore.js
+    │
+    ├── views
+    │   └── Dashboard.vue
+    │
+    ├── components
+    │
+    └── router
+        └── index.js
 ```
 
 ---
 
-# 📈 Melhorias implementadas
+## Comunicação com API
 
-* Estrutura modular (routes + controllers)
-* Rotas genéricas para qualquer tabela
-* Busca por ID
-* Limitação de registros
-* Filtros dinâmicos
-* Pool de conexões
-* Validação de tabelas permitidas
-* Proteção contra SQL injection
-* Documentação Swagger
+Arquivo:
 
----
+```
+src/api/api.js
+```
 
-# 📌 Possíveis melhorias futuras
+```
+axios baseURL
 
-* paginação (`page`)
-* ordenação (`sort`)
-* filtros avançados
-* endpoints específicos para dashboards
-* autenticação (JWT)
-* cache para consultas pesadas
+http://localhost:3000/api
+```
 
 ---
 
-# 👨‍💻 Autor
+## Store de vendas (Pinia)
 
-Projeto desenvolvido para estudo e integração com dashboards de ERP.
+Responsável por:
+
+* carregar dados DOCFAT
+* armazenar vendas
+* calcular métricas
+
+Exemplo de métricas:
+
+* total de vendas
+* quantidade de documentos
+* ticket médio
+
+---
+
+## Dashboard planejado
+
+Painel de vendas baseado na tabela **DOCFAT**.
+
+### Filtros
+
+* cliente
+* data inicial
+* data final
+
+---
+
+### Indicadores
+
+Cards com:
+
+* total faturado
+* quantidade de vendas
+* ticket médio
+
+---
+
+### Visualizações
+
+Gráfico:
+
+* vendas por dia
+* faturamento por período
+
+Tabela:
+
+* documentos DOCFAT
+
+---
+
+# Estrutura geral do projeto
+
+```
+projeto
+│
+├── api
+│   ├── routes
+│   ├── controllers
+│   ├── db
+│   └── config
+│
+└── front-end
+    └── dashboard
+```
+
+---
+
+# Estado atual do projeto
+
+API:
+
+✔ funcionando
+✔ rotas genéricas
+✔ filtros dinâmicos
+✔ limite de registros
+✔ busca por ID
+✔ segurança por tabela permitida
+✔ documentação Swagger
+
+Frontend:
+
+✔ projeto Vue criado
+✔ Vite rodando
+✔ Router configurado
+✔ início da estrutura do dashboard
+
+---
+
+# Próximos passos
+
+Melhorias previstas:
+
+API
+
+* filtros de data diretamente no SQL
+* paginação
+* ordenação
+* endpoints analíticos
+
+Frontend
+
+* filtros de cliente e período
+* gráficos ApexCharts
+* cards de métricas
+* tabela Vuetify
+* dashboard completo de vendas
+
+---
+
+# Objetivo final
+
+Criar um **dashboard analítico de vendas do ERP** consumindo dados do Firebird através da API REST.
